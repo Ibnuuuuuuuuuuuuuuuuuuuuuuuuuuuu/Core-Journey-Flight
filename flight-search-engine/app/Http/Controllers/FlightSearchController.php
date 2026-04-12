@@ -1,4 +1,7 @@
 <?php
+declare(strict_types=1);
+
+// filepath: app/Http/Controllers/FlightSearchController.php
 
 namespace App\Http\Controllers;
 
@@ -9,7 +12,9 @@ use App\Services\FlightSearchService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
+use Throwable;
 
 class FlightSearchController extends Controller
 {
@@ -40,7 +45,22 @@ class FlightSearchController extends Controller
     public function results(FlightSearchRequest $request): View
     {
         $validated = $request->validated();
-        $flights = $this->flightSearchService->search($validated);
+
+        Log::info('Flight search requested', [
+            'origin' => $validated['origin'],
+            'destination' => $validated['destination'],
+            'departure_date' => $validated['departure_date'],
+            'passenger_count' => $validated['passenger_count'],
+            'seat_class' => $validated['seat_class'],
+        ]);
+
+        try {
+            $flights = $this->flightSearchService->search($validated);
+        } catch (Throwable $throwable) {
+            report($throwable);
+
+            throw $throwable;
+        }
 
         return view('flights.results', [
             'flights' => $flights,

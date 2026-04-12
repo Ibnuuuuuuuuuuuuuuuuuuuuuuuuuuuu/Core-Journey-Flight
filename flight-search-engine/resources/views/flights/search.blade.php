@@ -11,26 +11,10 @@
     >
         <div class="mb-10 text-center">
             <h1 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">Temukan penerbangan Anda</h1>
-            <p class="mt-3 text-slate-400">Masukkan bandara asal, tujuan, dan tanggal keberangkatan.</p>
+            <p class="mt-3 text-slate-400">Masukkan bandara asal, tujuan, tanggal keberangkatan, kelas, dan jumlah penumpang.</p>
         </div>
 
-        <div
-            class="rounded-2xl border border-white/10 bg-slate-900/60 p-6 shadow-2xl shadow-black/40 backdrop-blur-sm sm:p-8"
-        >
-            @if ($errors->any())
-                <div
-                    class="mb-6 rounded-xl border border-rose-500/30 bg-rose-950/40 px-4 py-3 text-sm text-rose-200"
-                    role="alert"
-                >
-                    <p class="font-medium text-rose-100">Periksa kembali input Anda</p>
-                    <ul class="mt-2 list-inside list-disc space-y-1 text-rose-200/90">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-
+        <div class="rounded-2xl border border-white/10 bg-slate-900/60 p-6 shadow-2xl shadow-black/40 backdrop-blur-sm sm:p-8">
             <form id="flight-search-form" method="get" action="{{ route('flights.results') }}" class="space-y-6">
                 <div class="grid gap-6 sm:grid-cols-2">
                     <div class="space-y-2">
@@ -41,14 +25,18 @@
                             required
                             class="block w-full rounded-xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white shadow-inner ring-0 transition focus:border-sky-500/50 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
                         >
-                            <option value="" disabled {{ old('origin') ? '' : 'selected' }}>Pilih bandara asal</option>
+                            <option value="" disabled @selected(old('origin', request('origin')) === null || old('origin', request('origin')) === '')>Pilih bandara asal</option>
                             @foreach ($airports as $airport)
                                 <option value="{{ $airport->airport_code }}" @selected(old('origin', request('origin')) === $airport->airport_code)>
                                     {{ $airport->airport_code }} — {{ $airport->city_name }} ({{ $airport->airport_name }})
                                 </option>
                             @endforeach
                         </select>
+                        @error('origin')
+                            <p class="text-sm text-rose-300">{{ $message }}</p>
+                        @enderror
                     </div>
+
                     <div class="space-y-2">
                         <label for="destination" class="block text-sm font-medium text-slate-200">Ke (kode bandara)</label>
                         <select
@@ -57,13 +45,16 @@
                             required
                             class="block w-full rounded-xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white shadow-inner ring-0 transition focus:border-sky-500/50 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
                         >
-                            <option value="" disabled {{ old('destination') ? '' : 'selected' }}>Pilih bandara tujuan</option>
+                            <option value="" disabled @selected(old('destination', request('destination')) === null || old('destination', request('destination')) === '')>Pilih bandara tujuan</option>
                             @foreach ($airports as $airport)
                                 <option value="{{ $airport->airport_code }}" @selected(old('destination', request('destination')) === $airport->airport_code)>
                                     {{ $airport->airport_code }} — {{ $airport->city_name }} ({{ $airport->airport_name }})
                                 </option>
                             @endforeach
                         </select>
+                        @error('destination')
+                            <p class="text-sm text-rose-300">{{ $message }}</p>
+                        @enderror
                     </div>
                 </div>
 
@@ -78,6 +69,9 @@
                         required
                         class="block w-full max-w-xs cursor-pointer rounded-xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white shadow-inner placeholder:text-slate-600 focus:border-sky-500/50 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
                     />
+                    @error('departure_date')
+                        <p class="text-sm text-rose-300">{{ $message }}</p>
+                    @enderror
                     <p id="departure-date-help" class="text-xs text-slate-500">Pilih tanggal yang tersedia pada jadwal penerbangan.</p>
                 </div>
 
@@ -90,14 +84,18 @@
                             required
                             class="block w-full rounded-xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white shadow-inner ring-0 transition focus:border-sky-500/50 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
                         >
-                            <option value="" disabled {{ old('passenger_count') ? '' : 'selected' }}>Pilih jumlah</option>
+                            <option value="" disabled @selected(old('passenger_count', request('passenger_count')) === null || old('passenger_count', request('passenger_count')) === '')>Pilih jumlah</option>
                             @for ($i = 1; $i <= 7; $i++)
-                                <option value="{{ $i }}" @selected(old('passenger_count', request('passenger_count')) == $i)>
+                                <option value="{{ $i }}" @selected((string) old('passenger_count', request('passenger_count')) === (string) $i)>
                                     {{ $i }} penumpang
                                 </option>
                             @endfor
                         </select>
+                        @error('passenger_count')
+                            <p class="text-sm text-rose-300">{{ $message }}</p>
+                        @enderror
                     </div>
+
                     <div class="space-y-2">
                         <label for="seat_class" class="block text-sm font-medium text-slate-200">Kelas penerbangan</label>
                         <select
@@ -106,11 +104,14 @@
                             required
                             class="block w-full rounded-xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white shadow-inner ring-0 transition focus:border-sky-500/50 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
                         >
-                            <option value="" disabled {{ old('seat_class') ? '' : 'selected' }}>Pilih kelas</option>
+                            <option value="" disabled @selected(old('seat_class', request('seat_class')) === null || old('seat_class', request('seat_class')) === '')>Pilih kelas</option>
                             <option value="economy" @selected(old('seat_class', request('seat_class')) === 'economy')>Economy</option>
                             <option value="business" @selected(old('seat_class', request('seat_class')) === 'business')>Business</option>
                             <option value="first_class" @selected(old('seat_class', request('seat_class')) === 'first_class')>First Class</option>
                         </select>
+                        @error('seat_class')
+                            <p class="text-sm text-rose-300">{{ $message }}</p>
+                        @enderror
                     </div>
                 </div>
 

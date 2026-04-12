@@ -21,9 +21,6 @@
                 </h1>
                 <p class="mt-2 text-slate-400">{{ $departureLabel }}</p>
                 <div class="mt-3 flex flex-wrap items-center gap-2">
-                    <span class="inline-flex items-center rounded-lg bg-indigo-500/15 px-2.5 py-1 text-xs font-medium text-indigo-200 ring-1 ring-indigo-500/25">
-                        Kelas: {{ ucwords($seatClassLabel) }}
-                    </span>
                     <span class="inline-flex items-center rounded-lg bg-sky-500/15 px-2.5 py-1 text-xs font-medium text-sky-200 ring-1 ring-sky-500/25">
                         Penumpang: {{ $passengerCount }}
                     </span>
@@ -111,6 +108,9 @@
                             </div>
 
                             <div class="flex shrink-0 flex-col items-stretch gap-2 border-t border-white/5 pt-4 lg:border-l lg:border-t-0 lg:pl-8 lg:pt-0">
+                                <span class="inline-flex items-center self-start rounded-lg bg-indigo-500/15 px-2.5 py-1 text-xs font-medium text-indigo-200 ring-1 ring-indigo-500/25">
+                                    Kelas Penerbangan: {{ $seatClassLabel ?: 'N/A' }}
+                                </span>
                                 <p class="text-xs text-slate-500">Harga per tiket</p>
                                 <p class="text-xl font-bold text-white">
                                     Rp{{ number_format($pricePerPax, 0, ',', '.') }} <span class="text-sm font-medium text-slate-400">/ pax</span>

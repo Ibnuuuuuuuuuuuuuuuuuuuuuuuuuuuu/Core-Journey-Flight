@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 // filepath: app/Http/Controllers/Requests/FlightSearchRequest.php
 
 namespace App\Http\Controllers\Requests;
