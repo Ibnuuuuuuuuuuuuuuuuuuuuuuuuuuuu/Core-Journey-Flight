@@ -6,7 +6,8 @@
     <div
         id="flight-search-root"
         class="mx-auto max-w-3xl"
-        data-calendar-prices-url="{{ route('flights.calendar-prices') }}"
+        data-available-dates='@json($availableDepartureDates ?? [])'
+        data-available-dates-url="{{ route('flights.available-dates') }}"
     >
         <div class="mb-10 text-center">
             <h1 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">Temukan penerbangan Anda</h1>
@@ -68,19 +69,49 @@
 
                 <div class="space-y-2">
                     <label for="departure_date" class="block text-sm font-medium text-slate-200">Tanggal berangkat</label>
-                    <p class="text-xs text-slate-500">
-                        Kalender memuat harga termurah per hari (async) setelah Anda memilih bandara asal dan tujuan — mirip petunjuk harga pada kalender pemesanan modern.
-                    </p>
                     <input
-                        type="text"
+                        type="date"
                         id="departure_date"
                         name="departure_date"
                         value="{{ old('departure_date', request('departure_date')) }}"
+                        min="{{ today()->toDateString() }}"
                         required
-                        autocomplete="off"
-                        placeholder="Pilih tanggal"
                         class="block w-full max-w-xs cursor-pointer rounded-xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white shadow-inner placeholder:text-slate-600 focus:border-sky-500/50 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
                     />
+                    <p id="departure-date-help" class="text-xs text-slate-500">Pilih tanggal yang tersedia pada jadwal penerbangan.</p>
+                </div>
+
+                <div class="grid gap-6 sm:grid-cols-2">
+                    <div class="space-y-2">
+                        <label for="passenger_count" class="block text-sm font-medium text-slate-200">Jumlah penumpang</label>
+                        <select
+                            id="passenger_count"
+                            name="passenger_count"
+                            required
+                            class="block w-full rounded-xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white shadow-inner ring-0 transition focus:border-sky-500/50 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
+                        >
+                            <option value="" disabled {{ old('passenger_count') ? '' : 'selected' }}>Pilih jumlah</option>
+                            @for ($i = 1; $i <= 7; $i++)
+                                <option value="{{ $i }}" @selected(old('passenger_count', request('passenger_count')) == $i)>
+                                    {{ $i }} penumpang
+                                </option>
+                            @endfor
+                        </select>
+                    </div>
+                    <div class="space-y-2">
+                        <label for="seat_class" class="block text-sm font-medium text-slate-200">Kelas penerbangan</label>
+                        <select
+                            id="seat_class"
+                            name="seat_class"
+                            required
+                            class="block w-full rounded-xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white shadow-inner ring-0 transition focus:border-sky-500/50 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
+                        >
+                            <option value="" disabled {{ old('seat_class') ? '' : 'selected' }}>Pilih kelas</option>
+                            <option value="economy" @selected(old('seat_class', request('seat_class')) === 'economy')>Economy</option>
+                            <option value="business" @selected(old('seat_class', request('seat_class')) === 'business')>Business</option>
+                            <option value="first_class" @selected(old('seat_class', request('seat_class')) === 'first_class')>First Class</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center sm:justify-between">
@@ -98,4 +129,125 @@
             </form>
         </div>
     </div>
+
+    <script>
+        (function () {
+            const root = document.getElementById('flight-search-root');
+            const form = document.getElementById('flight-search-form');
+            const dateInput = document.getElementById('departure_date');
+            const help = document.getElementById('departure-date-help');
+            const originInput = document.getElementById('origin');
+            const destinationInput = document.getElementById('destination');
+            const availableDatesUrl = root.dataset.availableDatesUrl;
+
+            if (!root || !form || !dateInput || !originInput || !destinationInput) return;
+
+            let availableDates = JSON.parse(root.dataset.availableDates || '[]');
+            let availableDateSet = new Set(availableDates);
+            let flatpickrInstance = null;
+
+            function initOrUpdateFlatpickr() {
+                if (!window.flatpickr) {
+                    return;
+                }
+
+                if (flatpickrInstance) {
+                    flatpickrInstance.destroy();
+                    flatpickrInstance = null;
+                }
+
+                flatpickrInstance = window.flatpickr(dateInput, {
+                    dateFormat: 'Y-m-d',
+                    minDate: 'today',
+                    enable: availableDates.length ? availableDates : undefined,
+                });
+            }
+
+            function updateHelpText() {
+                if (!help) {
+                    return;
+                }
+
+                if (availableDates.length > 0) {
+                    help.textContent = 'Tanggal tersedia: ' + availableDates.join(', ');
+                    return;
+                }
+
+                help.textContent = 'Belum ada jadwal untuk rute yang dipilih.';
+            }
+
+            async function fetchAvailableDatesByRoute() {
+                if (!availableDatesUrl) {
+                    return;
+                }
+
+                const origin = originInput.value || '';
+                const destination = destinationInput.value || '';
+
+                const query = new URLSearchParams({
+                    origin,
+                    destination,
+                });
+
+                try {
+                    const response = await fetch(`${availableDatesUrl}?${query.toString()}`, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                    });
+
+                    if (!response.ok) {
+                        return;
+                    }
+
+                    const payload = await response.json();
+                    const nextDates = Array.isArray(payload.data) ? payload.data : [];
+
+                    availableDates = nextDates;
+                    availableDateSet = new Set(nextDates);
+
+                    if (dateInput.value && !availableDateSet.has(dateInput.value)) {
+                        dateInput.value = '';
+                    }
+
+                    updateHelpText();
+                    initOrUpdateFlatpickr();
+                    validateDepartureDate();
+                } catch (error) {
+                    // no-op
+                }
+            }
+
+            function validateDepartureDate() {
+                const selected = dateInput.value;
+
+                if (!selected) {
+                    dateInput.setCustomValidity('');
+                    return;
+                }
+
+                if (!availableDateSet.has(selected)) {
+                    dateInput.setCustomValidity('Tanggal ini belum memiliki jadwal penerbangan.');
+                } else {
+                    dateInput.setCustomValidity('');
+                }
+            }
+
+            updateHelpText();
+            initOrUpdateFlatpickr();
+
+            dateInput.addEventListener('input', validateDepartureDate);
+            dateInput.addEventListener('change', validateDepartureDate);
+            originInput.addEventListener('change', fetchAvailableDatesByRoute);
+            destinationInput.addEventListener('change', fetchAvailableDatesByRoute);
+
+            form.addEventListener('submit', function (event) {
+                validateDepartureDate();
+                if (!dateInput.checkValidity()) {
+                    event.preventDefault();
+                    dateInput.reportValidity();
+                }
+            });
+        })();
+    </script>
 @endsection
