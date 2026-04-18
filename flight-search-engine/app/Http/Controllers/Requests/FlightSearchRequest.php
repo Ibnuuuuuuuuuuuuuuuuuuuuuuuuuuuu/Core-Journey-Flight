@@ -10,6 +10,13 @@ use Illuminate\Validation\Rule;
 
 class FlightSearchRequest extends FormRequest
 {
+    private const TIME_SLOT_KEYS = [
+        'dawn',
+        'morning',
+        'afternoon',
+        'evening',
+    ];
+
     private const SEAT_CLASS_MAP = [
         'economy' => 'economy',
         'business' => 'business',
@@ -24,10 +31,15 @@ class FlightSearchRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        $departureSlots = $this->input('departure_slots', []);
+        $arrivalSlots = $this->input('arrival_slots', []);
+
         $this->merge([
             'origin' => strtoupper(trim((string) $this->input('origin'))),
             'destination' => strtoupper(trim((string) $this->input('destination'))),
             'seat_class' => $this->normalizeSeatClass($this->input('seat_class')),
+            'departure_slots' => is_array($departureSlots) ? $departureSlots : [],
+            'arrival_slots' => is_array($arrivalSlots) ? $arrivalSlots : [],
         ]);
     }
 
@@ -63,6 +75,10 @@ class FlightSearchRequest extends FormRequest
                 'string',
                 Rule::in(array_values(self::SEAT_CLASS_MAP)),
             ],
+            'departure_slots' => ['nullable', 'array'],
+            'departure_slots.*' => ['string', Rule::in(self::TIME_SLOT_KEYS)],
+            'arrival_slots' => ['nullable', 'array'],
+            'arrival_slots.*' => ['string', Rule::in(self::TIME_SLOT_KEYS)],
         ];
     }
 
@@ -85,6 +101,10 @@ class FlightSearchRequest extends FormRequest
             'passenger_count.max' => 'Passenger count must not be greater than 7.',
             'seat_class.required' => 'Seat class is required.',
             'seat_class.in' => 'Seat class must be Economy, Business, or First Class.',
+            'departure_slots.array' => 'Departure slot filter format is invalid.',
+            'departure_slots.*.in' => 'Departure time category is invalid.',
+            'arrival_slots.array' => 'Arrival slot filter format is invalid.',
+            'arrival_slots.*.in' => 'Arrival time category is invalid.',
         ];
     }
 

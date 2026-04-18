@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full">
+<html lang="{{ session('ui_lang', 'id') }}" class="h-full">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,6 +9,10 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="min-h-full bg-slate-950 text-slate-100 antialiased font-sans selection:bg-sky-500/30">
+        @php
+            $uiLang = session('ui_lang', 'id');
+            \Illuminate\Support\Facades\App::setLocale(in_array($uiLang, ['id', 'en'], true) ? $uiLang : 'id');
+        @endphp
         <div class="relative isolate min-h-full overflow-hidden">
             <div
                 class="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(14,165,233,0.22),transparent)]"
@@ -31,7 +35,7 @@
                         </span>
                         <div>
                             <p class="text-sm font-semibold tracking-tight text-white">Flight Search Engine</p>
-                            <p class="text-xs text-slate-400">Cari jadwal penerbangan</p>
+                            <p class="text-xs text-slate-400">{{ __('brand_subtitle') }}</p>
                         </div>
                     </a>
                     <nav class="flex items-center gap-2 text-sm">
@@ -39,8 +43,29 @@
                             href="{{ route('flights.search') }}"
                             class="rounded-lg px-3 py-2 font-medium text-slate-300 transition hover:bg-white/5 hover:text-white"
                         >
-                            Cari penerbangan
+                            {{ __('menu_search_flights') }}
                         </a>
+                        <div class="ml-2 flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2 py-1">
+                            <span class="px-1 text-xs text-slate-400">{{ __('label_language') }}</span>
+                            <form method="POST" action="{{ route('language.switch', ['lang' => 'id']) }}">
+                                @csrf
+                                <button
+                                    type="submit"
+                                    class="rounded-md px-2 py-1 text-xs font-medium transition {{ $uiLang === 'id' ? 'bg-sky-500/20 text-sky-200 ring-1 ring-sky-500/30' : 'text-slate-300 hover:bg-white/10 hover:text-white' }}"
+                                >
+                                    ID
+                                </button>
+                            </form>
+                            <form method="POST" action="{{ route('language.switch', ['lang' => 'en']) }}">
+                                @csrf
+                                <button
+                                    type="submit"
+                                    class="rounded-md px-2 py-1 text-xs font-medium transition {{ $uiLang === 'en' ? 'bg-sky-500/20 text-sky-200 ring-1 ring-sky-500/30' : 'text-slate-300 hover:bg-white/10 hover:text-white' }}"
+                                >
+                                    EN
+                                </button>
+                            </form>
+                        </div>
                     </nav>
                 </div>
             </header>

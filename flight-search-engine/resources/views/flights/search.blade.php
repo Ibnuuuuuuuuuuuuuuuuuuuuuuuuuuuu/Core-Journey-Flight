@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Cari penerbangan')
+@section('title', __('search_page_title'))
 
 @section('content')
     <div
@@ -10,22 +10,22 @@
         data-available-dates-url="{{ route('flights.available-dates') }}"
     >
         <div class="mb-10 text-center">
-            <h1 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">Temukan penerbangan Anda</h1>
-            <p class="mt-3 text-slate-400">Masukkan bandara asal, tujuan, tanggal keberangkatan, kelas, dan jumlah penumpang.</p>
+            <h1 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">{{ __('find_your_flight') }}</h1>
+            <p class="mt-3 text-slate-400">{{ __('find_your_flight_desc') }}</p>
         </div>
 
         <div class="rounded-2xl border border-white/10 bg-slate-900/60 p-6 shadow-2xl shadow-black/40 backdrop-blur-sm sm:p-8">
             <form id="flight-search-form" method="get" action="{{ route('flights.results') }}" class="space-y-6">
                 <div class="grid gap-6 sm:grid-cols-2">
                     <div class="space-y-2">
-                        <label for="origin" class="block text-sm font-medium text-slate-200">Dari (kode bandara)</label>
+                        <label for="origin" class="block text-sm font-medium text-slate-200">{{ __('from_airport') }}</label>
                         <select
                             id="origin"
                             name="origin"
                             required
                             class="block w-full rounded-xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white shadow-inner ring-0 transition focus:border-sky-500/50 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
                         >
-                            <option value="" disabled @selected(old('origin', request('origin')) === null || old('origin', request('origin')) === '')>Pilih bandara asal</option>
+                            <option value="" disabled @selected(old('origin', request('origin')) === null || old('origin', request('origin')) === '')>{{ __('choose_origin_airport') }}</option>
                             @foreach ($airports as $airport)
                                 <option value="{{ $airport->airport_code }}" @selected(old('origin', request('origin')) === $airport->airport_code)>
                                     {{ $airport->airport_code }} — {{ $airport->city_name }} ({{ $airport->airport_name }})
@@ -38,14 +38,14 @@
                     </div>
 
                     <div class="space-y-2">
-                        <label for="destination" class="block text-sm font-medium text-slate-200">Ke (kode bandara)</label>
+                        <label for="destination" class="block text-sm font-medium text-slate-200">{{ __('to_airport') }}</label>
                         <select
                             id="destination"
                             name="destination"
                             required
                             class="block w-full rounded-xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white shadow-inner ring-0 transition focus:border-sky-500/50 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
                         >
-                            <option value="" disabled @selected(old('destination', request('destination')) === null || old('destination', request('destination')) === '')>Pilih bandara tujuan</option>
+                            <option value="" disabled @selected(old('destination', request('destination')) === null || old('destination', request('destination')) === '')>{{ __('choose_destination_airport') }}</option>
                             @foreach ($airports as $airport)
                                 <option value="{{ $airport->airport_code }}" @selected(old('destination', request('destination')) === $airport->airport_code)>
                                     {{ $airport->airport_code }} — {{ $airport->city_name }} ({{ $airport->airport_name }})
@@ -59,7 +59,7 @@
                 </div>
 
                 <div class="space-y-2">
-                    <label for="departure_date" class="block text-sm font-medium text-slate-200">Tanggal berangkat</label>
+                    <label for="departure_date" class="block text-sm font-medium text-slate-200">{{ __('departure_date') }}</label>
                     <input
                         type="date"
                         id="departure_date"
@@ -72,22 +72,22 @@
                     @error('departure_date')
                         <p class="text-sm text-rose-300">{{ $message }}</p>
                     @enderror
-                    <p id="departure-date-help" class="text-xs text-slate-500">Pilih tanggal yang tersedia pada jadwal penerbangan.</p>
+                    <p id="departure-date-help" class="text-xs text-slate-500">{{ __('departure_date_help') }}</p>
                 </div>
 
                 <div class="grid gap-6 sm:grid-cols-2">
                     <div class="space-y-2">
-                        <label for="passenger_count" class="block text-sm font-medium text-slate-200">Jumlah penumpang</label>
+                        <label for="passenger_count" class="block text-sm font-medium text-slate-200">{{ __('label_passengers') }}</label>
                         <select
                             id="passenger_count"
                             name="passenger_count"
                             required
                             class="block w-full rounded-xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white shadow-inner ring-0 transition focus:border-sky-500/50 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
                         >
-                            <option value="" disabled @selected(old('passenger_count', request('passenger_count')) === null || old('passenger_count', request('passenger_count')) === '')>Pilih jumlah</option>
+                            <option value="" disabled @selected(old('passenger_count', request('passenger_count')) === null || old('passenger_count', request('passenger_count')) === '')>{{ __('choose_passenger_count') }}</option>
                             @for ($i = 1; $i <= 7; $i++)
                                 <option value="{{ $i }}" @selected((string) old('passenger_count', request('passenger_count')) === (string) $i)>
-                                    {{ $i }} penumpang
+                                    {{ __('passenger_count_option', ['count' => $i]) }}
                                 </option>
                             @endfor
                         </select>
@@ -97,14 +97,14 @@
                     </div>
 
                     <div class="space-y-2">
-                        <label for="seat_class" class="block text-sm font-medium text-slate-200">Kelas penerbangan</label>
+                        <label for="seat_class" class="block text-sm font-medium text-slate-200">{{ __('flight_class') }}</label>
                         <select
                             id="seat_class"
                             name="seat_class"
                             required
                             class="block w-full rounded-xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white shadow-inner ring-0 transition focus:border-sky-500/50 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
                         >
-                            <option value="" disabled @selected(old('seat_class', request('seat_class')) === null || old('seat_class', request('seat_class')) === '')>Pilih kelas</option>
+                            <option value="" disabled @selected(old('seat_class', request('seat_class')) === null || old('seat_class', request('seat_class')) === '')>{{ __('choose_class') }}</option>
                             <option value="economy" @selected(old('seat_class', request('seat_class')) === 'economy')>Economy</option>
                             <option value="business" @selected(old('seat_class', request('seat_class')) === 'business')>Business</option>
                             <option value="first_class" @selected(old('seat_class', request('seat_class')) === 'first_class')>First Class</option>
@@ -116,12 +116,12 @@
                 </div>
 
                 <div class="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center sm:justify-between">
-                    <p class="text-xs text-slate-500">Data diambil dari basis data lokal (seed demo).</p>
+                    <p class="text-xs text-slate-500">{{ __('local_seed_notice') }}</p>
                     <button
                         type="submit"
                         class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-sky-500/25 transition hover:from-sky-400 hover:to-indigo-500 hover:shadow-sky-500/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
                     >
-                        <span>Cari penerbangan</span>
+                        <span>{{ __('search_flights_button') }}</span>
                         <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                             <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>
@@ -170,11 +170,11 @@
                 }
 
                 if (availableDates.length > 0) {
-                    help.textContent = 'Tanggal tersedia: ' + availableDates.join(', ');
+                    help.textContent = '{{ __('available_dates_prefix') }}' + ' ' + availableDates.join(', ');
                     return;
                 }
 
-                help.textContent = 'Belum ada jadwal untuk rute yang dipilih.';
+                help.textContent = '{{ __('no_schedule_for_route') }}';
             }
 
             async function fetchAvailableDatesByRoute() {
@@ -228,7 +228,7 @@
                 }
 
                 if (!availableDateSet.has(selected)) {
-                    dateInput.setCustomValidity('Tanggal ini belum memiliki jadwal penerbangan.');
+                    dateInput.setCustomValidity('{{ __('departure_date_not_available') }}');
                 } else {
                     dateInput.setCustomValidity('');
                 }

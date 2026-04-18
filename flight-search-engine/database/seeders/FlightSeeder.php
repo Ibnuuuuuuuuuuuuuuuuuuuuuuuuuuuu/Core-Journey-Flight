@@ -14,137 +14,203 @@ class FlightSeeder extends Seeder
 {
     public function run(): void
     {
-        $cgk = Airport::query()->create([
+        $cgk = Airport::query()->firstOrCreate([
             'airport_code' => 'CGK',
+        ], [
             'airport_name' => 'Soekarno-Hatta International Airport',
             'city_name' => 'Jakarta',
             'country_name' => 'Indonesia',
         ]);
 
-        $dps = Airport::query()->create([
+        $dps = Airport::query()->firstOrCreate([
             'airport_code' => 'DPS',
+        ], [
             'airport_name' => 'I Gusti Ngurah Rai International Airport',
             'city_name' => 'Denpasar',
             'country_name' => 'Indonesia',
         ]);
 
-        $sub = Airport::query()->create([
+        $sub = Airport::query()->firstOrCreate([
             'airport_code' => 'SUB',
+        ], [
             'airport_name' => 'Juanda International Airport',
             'city_name' => 'Surabaya',
             'country_name' => 'Indonesia',
         ]);
 
-        $ga = Airline::query()->create([
-            'airline_code' => 'GA',
-            'airline_name' => 'Garuda Indonesia',
-        ]);
+        $airlines = [
+            Airline::query()->firstOrCreate(['airline_code' => 'GA'], ['airline_name' => 'Garuda Indonesia']),
+            Airline::query()->firstOrCreate(['airline_code' => 'QZ'], ['airline_name' => 'AirAsia Indonesia']),
+            Airline::query()->firstOrCreate(['airline_code' => 'ID'], ['airline_name' => 'Batik Air']),
+            Airline::query()->firstOrCreate(['airline_code' => 'QG'], ['airline_name' => 'Citilink Indonesia']),
+            Airline::query()->firstOrCreate(['airline_code' => 'JT'], ['airline_name' => 'Lion Air']),
+        ];
 
-        $qz = Airline::query()->create([
-            'airline_code' => 'QZ',
-            'airline_name' => 'AirAsia Indonesia',
-        ]);
+        $routes = [
+            'CGK-SUB' => Route::query()->firstOrCreate([
+                'route_code' => 'CGK-SUB',
+            ], [
+                'origin_id' => $cgk->id,
+                'destination_id' => $sub->id,
+                'distance_km' => 690,
+            ]),
+            'CGK-DPS' => Route::query()->firstOrCreate([
+                'route_code' => 'CGK-DPS',
+            ], [
+                'origin_id' => $cgk->id,
+                'destination_id' => $dps->id,
+                'distance_km' => 980,
+            ]),
+            'SUB-CGK' => Route::query()->firstOrCreate([
+                'route_code' => 'SUB-CGK',
+            ], [
+                'origin_id' => $sub->id,
+                'destination_id' => $cgk->id,
+                'distance_km' => 690,
+            ]),
+            'SUB-DPS' => Route::query()->firstOrCreate([
+                'route_code' => 'SUB-DPS',
+            ], [
+                'origin_id' => $sub->id,
+                'destination_id' => $dps->id,
+                'distance_km' => 410,
+            ]),
+            'DPS-CGK' => Route::query()->firstOrCreate([
+                'route_code' => 'DPS-CGK',
+            ], [
+                'origin_id' => $dps->id,
+                'destination_id' => $cgk->id,
+                'distance_km' => 980,
+            ]),
+            'DPS-SUB' => Route::query()->firstOrCreate([
+                'route_code' => 'DPS-SUB',
+            ], [
+                'origin_id' => $dps->id,
+                'destination_id' => $sub->id,
+                'distance_km' => 410,
+            ]),
+        ];
 
-        $routeCgkDps = Route::query()->create([
-            'origin_id' => $cgk->id,
-            'destination_id' => $dps->id,
-            'route_code' => 'CGK-DPS',
-            'distance_km' => 980,
-        ]);
+        $routeConfigs = [
+            'CGK-SUB' => [
+                'origin_code' => $cgk->airport_code,
+                'destination_code' => $sub->airport_code,
+                'flight_prefix' => 'CQ',
+                'base_price' => 760000,
+                'duration_minutes' => 95,
+                'departure_times' => ['06:00', '07:15', '08:30', '09:45', '11:00', '12:15', '14:00', '15:20', '17:05', '19:10'],
+            ],
+            'CGK-DPS' => [
+                'origin_code' => $cgk->airport_code,
+                'destination_code' => $dps->airport_code,
+                'flight_prefix' => 'GA',
+                'base_price' => 1680000,
+                'duration_minutes' => 155,
+                'departure_times' => ['06:10', '07:40', '09:05', '10:50', '12:25', '14:10', '15:55', '17:35', '19:20', '21:00'],
+            ],
+            'SUB-CGK' => [
+                'origin_code' => $sub->airport_code,
+                'destination_code' => $cgk->airport_code,
+                'flight_prefix' => 'ID',
+                'base_price' => 740000,
+                'duration_minutes' => 95,
+                'departure_times' => ['06:20', '07:35', '08:50', '10:05', '11:20', '13:00', '14:25', '16:10', '18:00', '20:15'],
+            ],
+            'SUB-DPS' => [
+                'origin_code' => $sub->airport_code,
+                'destination_code' => $dps->airport_code,
+                'flight_prefix' => 'QG',
+                'base_price' => 940000,
+                'duration_minutes' => 80,
+                'departure_times' => ['06:30', '07:50', '09:10', '10:30', '12:00', '13:35', '15:05', '16:40', '18:20', '20:05'],
+            ],
+            'DPS-CGK' => [
+                'origin_code' => $dps->airport_code,
+                'destination_code' => $cgk->airport_code,
+                'flight_prefix' => 'JT',
+                'base_price' => 1710000,
+                'duration_minutes' => 155,
+                'departure_times' => ['06:00', '07:30', '09:00', '10:35', '12:10', '13:45', '15:25', '17:00', '18:40', '20:20'],
+            ],
+            'DPS-SUB' => [
+                'origin_code' => $dps->airport_code,
+                'destination_code' => $sub->airport_code,
+                'flight_prefix' => 'QZ',
+                'base_price' => 980000,
+                'duration_minutes' => 80,
+                'departure_times' => ['06:15', '07:45', '09:15', '10:45', '12:20', '13:55', '15:30', '17:05', '18:45', '20:30'],
+            ],
+        ];
 
-        $routeCgkSub = Route::query()->create([
-            'origin_id' => $cgk->id,
-            'destination_id' => $sub->id,
-            'route_code' => 'CGK-SUB',
-            'distance_km' => 690,
-        ]);
+        $statusCycle = ['scheduled', 'scheduled', 'boarding', 'scheduled', 'departed'];
+        $baseDate = Carbon::parse('2026-04-18');
+        $departureSlots = [
+            ['time' => '06:00', 'duration' => 95],
+            ['time' => '10:30', 'duration' => 95],
+            ['time' => '18:45', 'duration' => 95],
+        ];
+        $dateCount = 3;
 
-        $routeSubDps = Route::query()->create([
-            'origin_id' => $sub->id,
-            'destination_id' => $dps->id,
-            'route_code' => 'SUB-DPS',
-            'distance_km' => 410,
-        ]);
+        foreach ($routeConfigs as $routeCode => $config) {
+            $route = $routes[$routeCode];
+            for ($dayIndex = 0; $dayIndex < $dateCount; $dayIndex++) {
+                $flightDate = $baseDate->copy()->addDays($dayIndex);
 
-        $departureDate = Carbon::parse('2026-04-12');
+                foreach ($departureSlots as $slotIndex => $slot) {
+                    $airline = $airlines[($dayIndex + $slotIndex + strlen($routeCode)) % count($airlines)];
+                    $numericCode = 500 + ($dayIndex * 60) + ($slotIndex * 10) + strlen($routeCode);
+                    $flightNumber = sprintf('%s %03d', $airline->airline_code, $numericCode);
+                    $departureAt = Carbon::createFromFormat('Y-m-d H:i', $flightDate->toDateString() . ' ' . $slot['time']);
+                    $arrivalAt = $departureAt->copy()->addMinutes($config['duration_minutes']);
+                    $basePrice = $config['base_price'] + ($dayIndex * 45000) + ($slotIndex * 25000) + (str_starts_with($routeCode, 'CGK-DPS') ? 70000 : 0);
+                    $status = $statusCycle[($dayIndex + $slotIndex) % count($statusCycle)];
 
-        $schedule1 = FlightSchedule::query()->create([
-            'airline_id' => $ga->id,
-            'route_id' => $routeCgkDps->id,
-            'flight_number' => 'GA-408',
-            'origin' => $cgk->airport_code,
-            'destination' => $dps->airport_code,
-            'departure_date' => $departureDate,
-            'departure_time' => '08:30:00',
-            'arrival_time' => '11:05:00',
-            'base_price' => 1850000,
-            'flight_status' => 'scheduled',
-        ]);
+                    $schedule = FlightSchedule::query()->updateOrCreate(
+                        [
+                            'flight_number' => $flightNumber,
+                            'route_id' => $route->id,
+                            'departure_date' => $flightDate->toDateString(),
+                            'departure_time' => $departureAt->toTimeString(),
+                        ],
+                        [
+                            'airline_id' => $airline->id,
+                            'origin' => $config['origin_code'],
+                            'destination' => $config['destination_code'],
+                            'arrival_time' => $arrivalAt->toTimeString(),
+                            'base_price' => $basePrice,
+                            'flight_status' => $status,
+                        ]
+                    );
 
-        FlightSeatClass::query()->create([
-            'flight_schedule_id' => $schedule1->id,
-            'seat_class' => 'economy',
-            'seat_capacity' => 180,
-            'available_seats' => 142,
-            'class_price' => 1850000,
-        ]);
+                    $classDefinitions = [
+                        'economy' => [
+                            'seat_capacity' => 180,
+                            'available_seats' => max(40, 180 - ($dayIndex * 12) - ($slotIndex * 5)),
+                            'class_price' => $basePrice,
+                        ],
+                        'business' => [
+                            'seat_capacity' => 24,
+                            'available_seats' => max(4, 24 - ($dayIndex * 2) - $slotIndex),
+                            'class_price' => (int) round($basePrice * 2.65),
+                        ],
+                        'first_class' => [
+                            'seat_capacity' => 8,
+                            'available_seats' => max(2, 8 - $dayIndex),
+                            'class_price' => (int) round($basePrice * 4.1),
+                        ],
+                    ];
 
-        FlightSeatClass::query()->create([
-            'flight_schedule_id' => $schedule1->id,
-            'seat_class' => 'business',
-            'seat_capacity' => 24,
-            'available_seats' => 8,
-            'class_price' => 5200000,
-        ]);
-
-        $schedule2 = FlightSchedule::query()->create([
-            'airline_id' => $qz->id,
-            'route_id' => $routeCgkSub->id,
-            'flight_number' => 'QZ-7620',
-            'origin' => $cgk->airport_code,
-            'destination' => $sub->airport_code,
-            'departure_date' => $departureDate->copy()->addDay(),
-            'departure_time' => '14:15:00',
-            'arrival_time' => '15:40:00',
-            'base_price' => 650000,
-            'flight_status' => 'scheduled',
-        ]);
-
-        FlightSeatClass::query()->create([
-            'flight_schedule_id' => $schedule2->id,
-            'seat_class' => 'economy',
-            'seat_capacity' => 186,
-            'available_seats' => 186,
-            'class_price' => 650000,
-        ]);
-
-        $schedule3 = FlightSchedule::query()->create([
-            'airline_id' => $ga->id,
-            'route_id' => $routeSubDps->id,
-            'flight_number' => 'GA-324',
-            'origin' => $sub->airport_code,
-            'destination' => $dps->airport_code,
-            'departure_date' => $departureDate->copy()->addDays(2),
-            'departure_time' => '09:00:00',
-            'arrival_time' => '10:35:00',
-            'base_price' => 920000,
-            'flight_status' => 'boarding',
-        ]);
-
-        FlightSeatClass::query()->create([
-            'flight_schedule_id' => $schedule3->id,
-            'seat_class' => 'economy',
-            'seat_capacity' => 162,
-            'available_seats' => 55,
-            'class_price' => 920000,
-        ]);
-
-        FlightSeatClass::query()->create([
-            'flight_schedule_id' => $schedule3->id,
-            'seat_class' => 'business',
-            'seat_capacity' => 12,
-            'available_seats' => 3,
-            'class_price' => 2800000,
-        ]);
+                    foreach ($classDefinitions as $seatClass => $classConfig) {
+                        FlightSeatClass::query()->updateOrCreate(
+                            [
+                                'flight_schedule_id' => $schedule->id,
+                                'seat_class' => $seatClass,
+                            ],
+                            $classConfig
+                        );
+                    }
+                }
+            }
+        }
     }
 }
