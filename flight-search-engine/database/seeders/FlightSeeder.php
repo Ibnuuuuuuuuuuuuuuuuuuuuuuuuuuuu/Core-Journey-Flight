@@ -143,7 +143,7 @@ class FlightSeeder extends Seeder
         ];
 
         $statusCycle = ['scheduled', 'scheduled', 'boarding', 'scheduled', 'departed'];
-        $baseDate = Carbon::parse('2026-04-18');
+        $baseDate = Carbon::parse('2026-04-19');
         $departureSlots = [
             ['time' => '06:00', 'duration' => 95],
             ['time' => '10:30', 'duration' => 95],
