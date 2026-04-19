@@ -4,7 +4,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreBookingRequest;
+use App\Models\Booking;
 use App\Models\FlightSchedule;
+use App\Services\BookingService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
@@ -104,9 +107,21 @@ class BookingController extends Controller
             'arrival_slots' => $validated['arrival_slots'] ?? [],
         ];
 
+        // Create booking
+        $bookingService = new BookingService();
+        $booking = $bookingService->createBooking([
+            'flight_schedule_id' => $flightSchedule->id,
+            'full_name' => $validated['full_name'],
+            'nik' => $validated['nik'],
+            'seat_class' => $validated['seat_class'],
+            'passenger_count' => $validated['passenger_count'],
+            'ancillary_services' => $validated['ancillary_services'] ?? [],
+        ]);
+
         return redirect()
             ->route('bookings.payment', [
                 'flightSchedule' => $flightSchedule->id,
+                'booking_id' => $booking->id,
                 'seat_class' => $validated['seat_class'],
                 'passenger_count' => $validated['passenger_count'],
                 'back_to_detail' => $validated['back_to_detail'] ?? null,
@@ -116,7 +131,8 @@ class BookingController extends Controller
                 'arrival_slots' => $timeFilters['arrival_slots'],
             ])
             ->with('booking_form_success', 'Data penumpang berhasil divalidasi. Silakan lanjut ke tahap pembayaran.')
-            ->with('booking_payload', $validated);
+            ->with('booking_payload', $validated)
+            ->with('booking_id', $booking->id);
     }
 
     public function payment(Request $request, FlightSchedule $flightSchedule): View
@@ -153,6 +169,53 @@ class BookingController extends Controller
             'flight' => $flightSchedule,
             'backToFormUrl' => $backToFormUrl,
         ]);
+    }
+
+    public function confirmPayment(Request $request): \Illuminate\View\View|bool
+    {
+        $this->applyLocale($request);
+
+        $bookingId = $request->input('booking_id');
+        $paymentStatus = $request->input('payment_status');
+        $paymentMethod = $request->input('payment_method');
+
+        // Validate input
+        $request->validate([
+            'booking_id' => 'required|integer|exists:bookings,id',
+            'payment_status' => 'required|string|in:successful,failed',
+            'payment_method' => 'required|string',
+        ]);
+
+        $bookingService = new BookingService();
+        $success = $bookingService->confirmPayment($bookingId, $paymentStatus, $paymentMethod);
+
+        if (!$success) {
+            return false; // Or redirect to error page
+        }
+
+        $booking = \App\Models\Booking::with('flightSchedule.airline')->find($bookingId);
+
+        return view('bookings.success', [
+            'booking' => $booking,
+        ]);
+    }
+
+    public function downloadEticket(Request $request, Booking $booking): \Illuminate\Http\Response
+    {
+        $this->applyLocale($request);
+
+        // Ensure booking is paid and belongs to user (in real app, add auth check)
+        if ($booking->status !== 'paid') {
+            abort(403, 'Booking not paid');
+        }
+
+        $booking->load(['flightSchedule.airline', 'tickets']);
+
+        $pdf = Pdf::loadView('pdf.eticket', [
+            'booking' => $booking,
+        ]);
+
+        return $pdf->download('e-ticket-' . $booking->booking_code . '.pdf');
     }
 
     public function switchLanguage(Request $request, string $lang): RedirectResponse

@@ -13,4 +13,6 @@ Route::get('/flights/{flightSchedule}', [BookingController::class, 'showFlight']
 Route::get('/bookings/{flightSchedule}/create', [BookingController::class, 'create'])->name('bookings.create');
 Route::post('/bookings/{flightSchedule}', [BookingController::class, 'store'])->name('bookings.store');
 Route::get('/bookings/{flightSchedule}/payment', [BookingController::class, 'payment'])->name('bookings.payment');
+Route::post('/bookings/confirm-payment', [BookingController::class, 'confirmPayment'])->name('bookings.confirm-payment');
+Route::get('/bookings/{booking}/download-eticket', [BookingController::class, 'downloadEticket'])->name('bookings.download-eticket');
 Route::post('/bahasa/{lang}', [BookingController::class, 'switchLanguage'])->name('language.switch');
